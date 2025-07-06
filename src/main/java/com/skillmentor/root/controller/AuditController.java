@@ -12,17 +12,23 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping(value = "/admin")
+@Validated
 @Tag(name = "Audit & Mentor Payments", description = "Endpoints for viewing audit logs and mentor payment reports")
 public class AuditController {
 
+    private final SessionService sessionService;
+
     @Autowired
-    private SessionService sessionService;
+    public AuditController(SessionService sessionService) {
+        this.sessionService = sessionService;
+    }
 
     @Operation(
             summary = "Get all audit logs",
@@ -62,10 +68,10 @@ public class AuditController {
     })
     @GetMapping(value = "/mentor-payments", produces = Constants.APPLICATION_JSON)
     public ResponseEntity<List<PaymentDTO>> findMentorPayments(
-            @Parameter(description = "Start date in yyyy-MM-dd format", required = false)
-            @RequestParam(name = "startDate", required = false) String startDate,
-            @Parameter(description = "End date in yyyy-MM-dd format", required = false)
-            @RequestParam(name = "endDate", required = false) String endDate
+            @Parameter(description = "Start date in yyyy-MM-dd format")
+            @RequestParam(name = "startDate", required = false) final String startDate,
+            @Parameter(description = "End date in yyyy-MM-dd format")
+            @RequestParam(name = "endDate", required = false) final String endDate
     ) {
         final List<PaymentDTO> auditDTOS = sessionService.findMentorPayments(startDate, endDate);
         return new ResponseEntity<>(auditDTOS, HttpStatus.OK);

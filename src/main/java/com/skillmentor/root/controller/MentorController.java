@@ -26,11 +26,11 @@ import java.util.List;
 @RequestMapping(value = "/academic")
 @Tag(name = "Mentor Management", description = "Endpoints for managing mentors and their related data")
 public class MentorController {
+    private final MentorService mentorService;
 
     @Autowired
-    private MentorService mentorService;
-
-    public MentorController() {
+    public MentorController(MentorService mentorService) {
+        this.mentorService = mentorService;
     }
 
     @Operation(summary = "Create a new mentor", description = "Creates a mentor along with subject and classroom associations")

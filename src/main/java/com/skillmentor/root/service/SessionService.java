@@ -46,6 +46,11 @@ public interface SessionService {
      */
     List<PaymentDTO> findMentorPayments(String startDate, String endDate);
 
+    /**
+     * Retrieves all sessions associated with a specific student clerk ID.
+     * @param studentClerkId the clerk ID of the student whose sessions are to be retrieved
+     * @return a list of session DTOs for the specified student
+     */
     List<SessionDTO> getAllStudentSessions(String studentClerkId);
 
     /**

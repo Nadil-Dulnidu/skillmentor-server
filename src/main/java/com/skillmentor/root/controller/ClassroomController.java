@@ -23,11 +23,11 @@ import java.util.List;
 @RequestMapping(value = "/academic")
 @Tag(name = "Classroom Management", description = "Endpoints for managing classrooms and their relationships")
 public class ClassroomController {
+    private final ClassRoomService classroomService;
 
     @Autowired
-    private ClassRoomService classroomService;
-
-    public ClassroomController() {
+    public ClassroomController(ClassRoomService classroomService) {
+        this.classroomService = classroomService;
     }
 
     @Operation(summary = "Create a new classroom", description = "Creates a new classroom along with its mentor(s)")
