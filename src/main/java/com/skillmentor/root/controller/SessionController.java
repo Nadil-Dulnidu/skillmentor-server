@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,10 +25,14 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/academic")
 @Tag(name = "Session Management", description = "Endpoints for creating and retrieving academic sessions")
+@Validated
 public class SessionController {
+    private final SessionService sessionService;
 
     @Autowired
-    private SessionService sessionService;
+    public SessionController(SessionService sessionService) {
+        this.sessionService = sessionService;
+    }
 
     @Operation(
             summary = "Create a new session",
@@ -41,7 +46,7 @@ public class SessionController {
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "Service unavailable")
     })
-//    @PreAuthorize(Constants.ADMIN_ROLE_PERMISSION) // TODO: Change to STUDENT_ROLE_PERMISSION after configurations
+    @PreAuthorize(Constants.ADMIN_OR_STUDENT_ROLE_PERMISSION)
     @PostMapping(value = "/session", consumes = Constants.APPLICATION_JSON, produces = Constants.APPLICATION_JSON)
     public ResponseEntity<SessionLiteDTO> createSession(
             @Parameter(description = "Session data to create", required = true)
@@ -60,7 +65,7 @@ public class SessionController {
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "Service unavailable")
     })
-    @PreAuthorize(Constants.ADMIN_ROLE_PERMISSION)
+    @PreAuthorize(Constants.ADMIN_OR_STUDENT_ROLE_PERMISSION)
     @GetMapping(value = "/session", produces = Constants.APPLICATION_JSON)
     public ResponseEntity<List<SessionDTO>> getAllSessions() {
         final List<SessionDTO> sessionDTOS = sessionService.getAllSessions();
@@ -78,10 +83,11 @@ public class SessionController {
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "Service unavailable")
     })
+    @PreAuthorize(Constants.ADMIN_OR_STUDENT_ROLE_PERMISSION)
     @GetMapping(value = "/session/student/{clerkId}", produces = Constants.APPLICATION_JSON)
     public ResponseEntity<List<SessionDTO>> getAllStudentSessions(
             @Parameter(description = "Clerk ID of the student", required = true)
-            @PathVariable @NotNull String clerkId) {
+            @PathVariable @NotNull final String clerkId) {
         final List<SessionDTO> sessionDTOS = sessionService.getAllStudentSessions(clerkId);
         return new ResponseEntity<>(sessionDTOS, HttpStatus.OK);
     }

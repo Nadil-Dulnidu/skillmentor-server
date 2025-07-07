@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,6 +46,7 @@ public class AuditController {
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "Service unavailable")
     })
+    @PreAuthorize(Constants.ADMIN_ROLE_PERMISSION)
     @GetMapping(value = "/audit", produces = Constants.APPLICATION_JSON)
     public ResponseEntity<List<AuditDTO>> getAllAudits() {
         final List<AuditDTO> auditDTOS = sessionService.getAllAudits();
@@ -66,6 +68,7 @@ public class AuditController {
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "Service unavailable")
     })
+    @PreAuthorize(Constants.ADMIN_ROLE_PERMISSION)
     @GetMapping(value = "/mentor-payments", produces = Constants.APPLICATION_JSON)
     public ResponseEntity<List<PaymentDTO>> findMentorPayments(
             @Parameter(description = "Start date in yyyy-MM-dd format")

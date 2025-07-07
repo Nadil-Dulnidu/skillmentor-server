@@ -24,7 +24,6 @@ public class ClassRoomDTO {
     @Schema(description = "Title of the classroom", example = "Introduction to Java Programming")
     private String title;
 
-    @NotNull(message = "Enrolled student count must not be null")
     @JsonProperty("enrolled_student_count")
     @Schema(description = "Number of students enrolled in the classroom", example = "25")
     private Integer enrolledStudentCount;

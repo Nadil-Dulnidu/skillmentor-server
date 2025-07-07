@@ -104,7 +104,6 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<SessionDTO> getAllStudentSessions(final String studentClerkId) {
         log.info("Retrieving all sessions for student with clerk ID: {}", studentClerkId);
         if (Objects.isNull(studentClerkId)) {

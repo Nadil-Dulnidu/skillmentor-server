@@ -13,6 +13,7 @@ import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,7 +54,6 @@ public class ClassroomController {
             @ApiResponse(responseCode = "404", description = "No classrooms found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-//    @PreAuthorize(Constants.ADMIN_ROLE_PERMISSION) // TODO: Change to STUDENT_ROLE_PERMISSION after configurations
     @GetMapping(value = "/classroom", produces = Constants.APPLICATION_JSON)
     public ResponseEntity<List<ClassRoomDTO>> getAllClassrooms() {
         final List<ClassRoomDTO> classroomDTOS = classroomService.getAllClassRooms();
@@ -67,7 +67,7 @@ public class ClassroomController {
             @ApiResponse(responseCode = "404", description = "Classroom not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-//    @PreAuthorize(Constants.ADMIN_ROLE_PERMISSION) // TODO: Change to STUDENT_ROLE_PERMISSION after configurations
+    @PreAuthorize(Constants.ADMIN_OR_STUDENT_ROLE_PERMISSION)
     @GetMapping(value = "/classroom/{id}", produces = Constants.APPLICATION_JSON)
     public ResponseEntity<ClassRoomDTO> findClassroomById(
             @Parameter(description = "ID of the classroom to retrieve", required = true)

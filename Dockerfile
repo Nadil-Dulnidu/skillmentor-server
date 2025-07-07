@@ -17,7 +17,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # Copy the JAR file from the build stage
-COPY --from=build /app/target/skill-mentor-root-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/skill-mentor-root-1.0.0.jar app.jar
 
 # Expose the port the application runs on
 EXPOSE 8080

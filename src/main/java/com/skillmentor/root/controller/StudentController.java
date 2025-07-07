@@ -2,7 +2,6 @@ package com.skillmentor.root.controller;
 
 import com.skillmentor.root.common.Constants;
 import com.skillmentor.root.dto.StudentDTO;
-import com.skillmentor.root.exception.StudentException;
 import com.skillmentor.root.service.StudentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +41,7 @@ public class StudentController {
             @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-//    @PreAuthorize(Constants.ADMIN_ROLE_PERMISSION) // TODO: Change to STUDENT_ROLE_PERMISSION after configurations
+    @PreAuthorize(Constants.ADMIN_OR_STUDENT_ROLE_PERMISSION)
     @PostMapping(value = "/student", consumes = Constants.APPLICATION_JSON, produces = Constants.APPLICATION_JSON)
     public ResponseEntity<StudentDTO> createStudent(
             @Parameter(description = "Student details to create", required = true)
@@ -62,9 +60,12 @@ public class StudentController {
     @PreAuthorize(Constants.ADMIN_ROLE_PERMISSION)
     @GetMapping(value = "/student", produces = Constants.APPLICATION_JSON)
     public ResponseEntity<List<StudentDTO>> getAllStudents(
-            @Parameter(description = "Filter by address") @RequestParam(required = false) List<String> addresses,
-            @Parameter(description = "Filter by age") @RequestParam(required = false) List<Integer> ages,
-            @Parameter(description = "Filter by first name") @RequestParam(required = false) List<String> firstNames
+            @Parameter(description = "Filter by address")
+            @RequestParam(required = false) final List<String> addresses,
+            @Parameter(description = "Filter by age")
+            @RequestParam(required = false) final List<Integer> ages,
+            @Parameter(description = "Filter by first name")
+            @RequestParam(required = false) final List<String> firstNames
     ) {
         final List<StudentDTO> studentDTOS = studentService.getAllStudents(addresses, ages, firstNames);
         log.info("Get All Students......");
@@ -78,11 +79,11 @@ public class StudentController {
             @ApiResponse(responseCode = "404", description = "Student not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @PreAuthorize(Constants.ADMIN_ROLE_PERMISSION)
+    @PreAuthorize(Constants.ADMIN_OR_STUDENT_ROLE_PERMISSION)
     @PutMapping(value = "/student", consumes = Constants.APPLICATION_JSON, produces = Constants.APPLICATION_JSON)
     public ResponseEntity<StudentDTO> updateStudent(
             @Parameter(description = "Student data to update", required = true)
-            @RequestBody @Valid StudentDTO studentDTO
+            @RequestBody @Valid final StudentDTO studentDTO
     ) {
         final StudentDTO student = studentService.updateStudentById(studentDTO);
         return new ResponseEntity<>(student, HttpStatus.OK);
@@ -95,7 +96,7 @@ public class StudentController {
             @ApiResponse(responseCode = "404", description = "Student not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-//    @PreAuthorize(Constants.ADMIN_ROLE_PERMISSION) // TODO: Change to STUDENT_ROLE_PERMISSION after configurations
+    @PreAuthorize(Constants.ADMIN_OR_STUDENT_ROLE_PERMISSION)
     @GetMapping(value = "/student/{id}", produces = Constants.APPLICATION_JSON)
     public ResponseEntity<StudentDTO> findStudentById(
             @Parameter(description = "ID of the student to fetch", required = true)
@@ -113,7 +114,7 @@ public class StudentController {
             @ApiResponse(responseCode = "404", description = "Student not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @PreAuthorize(Constants.ADMIN_ROLE_PERMISSION)
+    @PreAuthorize(Constants.ADMIN_OR_STUDENT_ROLE_PERMISSION)
     @DeleteMapping(value = "/student/{id}", produces = Constants.APPLICATION_JSON)
     public ResponseEntity<StudentDTO> deleteStudentByClerkId(
             @Parameter(description = "Clerk ID of the student to delete", required = true)
