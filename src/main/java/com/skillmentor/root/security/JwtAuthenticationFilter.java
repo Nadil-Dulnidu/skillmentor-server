@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        String token = header.substring(7); // Remove "Bearer "
+        String token = header.substring(7);
         try {
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(publicKey)
