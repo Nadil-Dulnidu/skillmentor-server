@@ -25,20 +25,21 @@ public class StudentServiceImpl implements StudentService {
     @Value("${spring.datasource.url}")
     private String datasource;
 
+    private final StudentRepository studentRepository;
+
     @Autowired
-    StudentRepository studentRepository;
+    public StudentServiceImpl(StudentRepository studentRepository) {
+        this.studentRepository = studentRepository;
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-//    @CacheEvict(value = {"studentCache", "allStudentsCache"}, allEntries = true)
     public StudentDTO createStudent(final StudentDTO studentDTO) {
         log.info("Creating new student...");
         if (studentDTO == null) {
             log.error("Failed to create student: input DTO is null.");
             throw new IllegalArgumentException("Student data must not be null.");
         }
-
-        // First check if student already exists by clerk ID
         try {
             Optional<StudentEntity> existingStudent = studentRepository.findByClerkStudentId(studentDTO.getClerkStudentId());
             if (existingStudent.isPresent()) {
@@ -52,7 +53,6 @@ public class StudentServiceImpl implements StudentService {
             return StudentEntityDTOMapper.map(savedEntity);
         } catch (DataIntegrityViolationException e) {
             log.error("Data integrity violation while creating student: {}", e.getMessage());
-            // Retry finding the student in case it was created concurrently
             return studentRepository.findByClerkStudentId(studentDTO.getClerkStudentId())
                     .map(StudentEntityDTOMapper::map)
                     .orElseThrow(() -> new StudentException("Failed to create student due to data integrity violation"));
@@ -61,7 +61,6 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-//    @Cacheable(value = "allStudentsCache", key = "'allStudents'")
     public List<StudentDTO> getAllStudents(final List<String> addresses, final List<Integer> ages, final List<String> firstNames) {
         log.info("Fetching all students with filters: addresses={}, ages={}, firstNames={}", addresses, ages, firstNames);
         final List<StudentEntity> studentEntities = studentRepository.findAll();
@@ -77,7 +76,6 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-//    @Cacheable(value = "studentCache", key = "#id")
     @Transactional(rollbackFor = Exception.class)
     public StudentDTO findStudentById(final Integer id) {
         log.info("Fetching student by ID: {}", id);
@@ -94,8 +92,6 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-//    @CacheEvict(value = "allStudentsCache", allEntries = true)
-//    @CachePut(value = "studentCache", key = "#studentDTO.studentId")
     public StudentDTO updateStudentById(final StudentDTO studentDTO) {
         log.info("Updating student...");
         if (studentDTO == null || studentDTO.getStudentId() == null) {
@@ -121,7 +117,6 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-//    @CacheEvict(value = {"studentCache", "allStudentsCache"}, key = "#id")
     public StudentDTO deleteStudentById(final Integer id) {
         log.info("Deleting student with ID: {}", id);
         final StudentEntity studentEntity = studentRepository.findById(id)
