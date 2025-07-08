@@ -3,6 +3,7 @@ package com.skillmentor.root.security;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,7 +26,8 @@ import java.util.Base64;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private static final String JWKS_URL = "https://easy-chicken-14.clerk.accounts.dev/.well-known/jwks.json";
+    @Value("${clerk.jwks.url}")
+    private String JWKS_URL;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -33,8 +35,12 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfiguration = new CorsConfiguration();
-                    corsConfiguration.addAllowedOrigin("*");
-                    corsConfiguration.addAllowedMethod("*");
+                    corsConfiguration.addAllowedOrigin("http://localhost:3000");
+                    corsConfiguration.addAllowedOrigin("http://localhost:5173");
+                    corsConfiguration.addAllowedMethod("GET");
+                    corsConfiguration.addAllowedMethod("POST");
+                    corsConfiguration.addAllowedMethod("PUT");
+                    corsConfiguration.addAllowedMethod("DELETE");
                     corsConfiguration.addAllowedHeader("*");
                     return corsConfiguration;
                 }))
