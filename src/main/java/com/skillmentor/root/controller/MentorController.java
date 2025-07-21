@@ -80,35 +80,35 @@ public class MentorController {
             return ResponseEntity.ok(mentor);
     }
 
-    @Operation(summary = "Get mentor by Clerk ID", description = "Retrieves a mentor using their unique Clerk ID")
+    @Operation(summary = "Get mentor by ID", description = "Retrieves a mentor using their unique ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Mentor retrieved successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid Clerk ID"),
+            @ApiResponse(responseCode = "400", description = "Invalid ID"),
             @ApiResponse(responseCode = "404", description = "Mentor not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PreAuthorize(Constants.ADMIN_ROLE_PERMISSION)
     @GetMapping(value = "/mentor/{id}", produces = Constants.APPLICATION_JSON)
     public ResponseEntity<?> findMentorByClerkId(
-            @Parameter(description = "Clerk ID of the mentor to retrieve", required = true)
-            @PathVariable @NotNull String id) {
-            final MentorDTO mentor = mentorService.findMentorByClerkId(id);
+            @Parameter(description = "ID of the mentor to retrieve", required = true)
+            @PathVariable @NotNull Integer id) {
+            final MentorDTO mentor = mentorService.findMentorById(id);
             return ResponseEntity.ok(mentor);
     }
 
-    @Operation(summary = "Delete mentor by Clerk ID", description = "Deletes a mentor using their unique Clerk ID")
+    @Operation(summary = "Delete mentor by ID", description = "Deletes a mentor using their unique ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Mentor deleted successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid Clerk ID"),
+            @ApiResponse(responseCode = "400", description = "Invalid ID"),
             @ApiResponse(responseCode = "404", description = "Mentor not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PreAuthorize(Constants.ADMIN_ROLE_PERMISSION)
     @DeleteMapping(value = "/mentor/{id}", produces = Constants.APPLICATION_JSON)
-    public ResponseEntity<?> deleteMentorByClerkId(
-            @Parameter(description = "Clerk ID of the mentor to delete", required = true)
-            @PathVariable @NotNull String id) {
-            final MentorDTO mentor = mentorService.deleteMentorByClerkId(id);
+    public ResponseEntity<?> deleteMentorById(
+            @Parameter(description = "Id of the mentor to delete", required = true)
+            @PathVariable @NotNull Integer id) {
+            final MentorDTO mentor = mentorService.deleteMentorById(id);
             return ResponseEntity.ok(mentor);
     }
 }

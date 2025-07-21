@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "mentor")
+@ToString(exclude = "sessionEntityList")
 @NoArgsConstructor
 @AllArgsConstructor
 public class MentorEntity {
@@ -24,7 +26,7 @@ public class MentorEntity {
     private Integer mentorId;
 
     @NotBlank(message = "Clerk mentor ID must not be blank")
-    @Column(name = "clerk_mentor_id", nullable = false, unique = true)
+    @Column(name = "clerk_mentor_id", unique = true)
     private String clerkMentorId;
 
     @NotBlank(message = "First name must not be blank")
@@ -62,7 +64,7 @@ public class MentorEntity {
     private Double sessionFee;
 
     @NotBlank(message = "Subject must not be blank")
-    @Column(name = "subject", nullable = false)
+    @Column(name = "subject", nullable = false ,columnDefinition = "VARCHAR(500)")
     private String subject;
 
     @NotBlank(message = "Qualification must not be blank")

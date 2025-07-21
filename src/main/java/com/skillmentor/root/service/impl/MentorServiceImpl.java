@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -64,9 +65,19 @@ public class MentorServiceImpl implements MentorService {
     public List<MentorDTO> getAllMentors(final List<String> firstNames, final List<String> subjects) {
         log.info("Fetching all mentors with filters - First Names: {}, Subjects: {}", firstNames, subjects);
         return mentorRepository.findAll().stream()
-                .filter(mentor -> firstNames == null || firstNames.isEmpty() || firstNames.contains(mentor.getFirstName()))
-                .filter(mentor -> subjects == null || subjects.isEmpty() || subjects.contains(mentor.getSubject()))
-                .map(MentorEntityDTOMapper::map)
+                .filter(mentor -> firstNames == null ||
+                                firstNames.isEmpty() ||
+                                firstNames.contains(mentor.getFirstName()))
+                .filter(mentor -> subjects == null || subjects.isEmpty() ||
+                        subjects.contains(mentor.getSubject()))
+                .map(mentorEntity -> {
+                    final Optional<ClassRoomEntity> classRoomEntity = classRoomRepository
+                            .findMentorByMentor(mentorEntity);
+                    final MentorDTO mentorDTO = MentorEntityDTOMapper.map(mentorEntity);
+                    classRoomEntity.ifPresent(classRoomEntity1 ->
+                            mentorDTO.setClassRoomId(classRoomEntity1.getClassRoomId()));
+                    return mentorDTO;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -78,12 +89,21 @@ public class MentorServiceImpl implements MentorService {
             log.error("Mentor ID cannot be null");
             throw new IllegalArgumentException("Mentor ID cannot be null");
         }
-        return mentorRepository.findById(id)
-                .map(MentorEntityDTOMapper::map)
-                .orElseThrow(() -> {
-                    log.error("Mentor not found with ID: {}", id);
-                    return new MentorException("Mentor not found with ID: " + id);
-                });
+        final Optional<MentorEntity> mentorEntity =  mentorRepository.findById(id);
+        if(mentorEntity.isPresent()){
+            final Optional<ClassRoomEntity> classRoomEntity = classRoomRepository
+                    .findMentorByMentor(mentorEntity.get());
+            log.debug("MentorDTO mapping with MentorEntity");
+            final MentorDTO mentorDTO = MentorEntityDTOMapper.map(mentorEntity.get());
+            classRoomEntity.ifPresent(roomEntity -> {
+                mentorDTO.setClassRoomId(roomEntity.getClassRoomId());
+                log.info("Classroom id assigned to the mentorDTO");
+            });
+            return mentorDTO;
+        }else{
+            log.error("No mentor found with ID: {}", id);
+            throw new MentorException("No mentor found with ID: " + id);
+        }
     }
 
     @Override
@@ -128,6 +148,13 @@ public class MentorServiceImpl implements MentorService {
                     log.error("Cannot delete. Mentor not found with ID: {}", id);
                     return new MentorException("Cannot delete. Mentor not found with ID: " + id);
                 });
+        final Optional<ClassRoomEntity> classRoomEntity = classRoomRepository.findMentorByMentor(mentorEntity);
+        classRoomEntity.ifPresent(roomEntity -> {
+            log.debug("Remove the reference to the mentor ");
+            roomEntity.setMentor(null);
+            log.info("Save classroom after removing mentor");
+            classRoomRepository.save(roomEntity);
+        });
         log.info("Found mentor for deletion: {}", mentorEntity);
         mentorRepository.deleteById(id);
         log.info("Mentor deleted successfully: {}", mentorEntity);

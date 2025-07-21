@@ -28,7 +28,6 @@ public class MentorDTO {
     @Schema(description = "Unique identifier for the mentor", example = "1")
     private Integer mentorId;
 
-    @NotBlank(message = "Clerk mentor ID must not be blank")
     @JsonProperty("clerk_mentor_id")
     @Schema(description = "Unique identifier for the mentor in the clerk system", example = "mentor123")
     private String clerkMentorId;
@@ -85,12 +84,11 @@ public class MentorDTO {
     @Schema(description = "Qualification of the mentor", example = "PhD in Computer Science")
     private String qualification;
 
-    @NotNull(message = "mentor_image must not be null")
+    @NotBlank(message = "mentor_image must not be null")
     @JsonProperty("mentor_image")
     @Schema(description = "Image URL for the mentor", example = "https://example.com/mentor.jpg")
     private String mentorImage;
 
-    @NotNull(message = "Classroom ID must not be null")
     @JsonProperty("class_room_id")
     @Schema(description = "ID of the classroom associated with the mentor", example = "101")
     private Integer classRoomId;

@@ -3,8 +3,13 @@ package com.skillmentor.root.mapper;
 import com.skillmentor.root.dto.MentorDTO;
 import com.skillmentor.root.entity.MentorEntity;
 
+import java.util.Objects;
+
 public class MentorEntityDTOMapper {
     public static MentorDTO map(MentorEntity mentorEntity) {
+        if(Objects.isNull(mentorEntity)){
+            throw new IllegalArgumentException("mentorEntity cannot be null");
+        }
         MentorDTO mentorDTO = new MentorDTO();
         mentorDTO.setMentorId(mentorEntity.getMentorId());
         mentorDTO.setClerkMentorId(mentorEntity.getClerkMentorId());
@@ -23,6 +28,9 @@ public class MentorEntityDTOMapper {
     }
 
     public static MentorEntity map(MentorDTO mentorDTO) {
+        if(Objects.isNull(mentorDTO)){
+            throw new IllegalArgumentException("MentorDTO cannot be null");
+        }
         MentorEntity mentorEntity = new MentorEntity();
         mentorEntity.setMentorId(mentorDTO.getMentorId());
         mentorEntity.setClerkMentorId(mentorDTO.getClerkMentorId());
