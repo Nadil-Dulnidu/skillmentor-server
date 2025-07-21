@@ -2,7 +2,6 @@ package com.skillmentor.root.security;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,8 +34,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfiguration = new CorsConfiguration();
-                    corsConfiguration.addAllowedOrigin("http://localhost:3000");
-                    corsConfiguration.addAllowedOrigin("http://localhost:5173");
+                    corsConfiguration.addAllowedOrigin("*");
                     corsConfiguration.addAllowedMethod("GET");
                     corsConfiguration.addAllowedMethod("POST");
                     corsConfiguration.addAllowedMethod("PUT");
