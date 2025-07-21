@@ -26,7 +26,7 @@ public class MentorEntity {
     private Integer mentorId;
 
     @NotBlank(message = "Clerk mentor ID must not be blank")
-    @Column(name = "clerk_mentor_id", unique = true)
+    @Column(name = "clerk_mentor_id")
     private String clerkMentorId;
 
     @NotBlank(message = "First name must not be blank")

@@ -29,6 +29,7 @@ public class MentorDTO {
     private Integer mentorId;
 
     @JsonProperty("clerk_mentor_id")
+    @NotBlank(message = "Clerk mentor ID must not be blank")
     @Schema(description = "Unique identifier for the mentor in the clerk system", example = "mentor123")
     private String clerkMentorId;
 
