@@ -61,7 +61,7 @@ public class ClerkWebhookController {
             headers.setBearerAuth(clerkApiKey);
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            String getUrl = "https://api.clerk.dev/v1/users/" + userId;
+            String getUrl = "https://api.clerk.com/v1/users/" + userId;
             HttpEntity<String> getEntity = new HttpEntity<>(headers);
             ResponseEntity<String> getResponse = restTemplate.exchange(getUrl, HttpMethod.GET, getEntity, String.class);
             Map<String, Object> userMap = objectMapper.readValue(getResponse.getBody(), Map.class);
