@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/clerk")
@@ -27,12 +29,21 @@ public class ClerkWebhookController {
     @PostMapping("/user-created")
     public ResponseEntity<String> handleUserCreated(
             @RequestBody String rawBody,
-            @RequestHeader java.net.http.HttpHeaders header
+            @RequestHeader HttpHeaders springHeaders
     ) {
         try {
+            Map<String, List<String>> headerMap = springHeaders.entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue
+                    ));
+
+            java.net.http.HttpHeaders jdkHeaders = java.net.http.HttpHeaders.of(headerMap, (k, v) -> true);
+
             // 1. Verify webhook
             Webhook svixWebhook = new Webhook(clerkWebhookSecret);
-            svixWebhook.verify(rawBody, header);
+            svixWebhook.verify(rawBody, jdkHeaders);
 
             // 2. Parse body
             Map<String, Object> body = objectMapper.readValue(rawBody, Map.class);
