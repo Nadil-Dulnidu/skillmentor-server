@@ -98,7 +98,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ClerkException.class)
-    public ResponseEntity<Map<String, Object>> handleClerkException(AuditException ex) {
+    public ResponseEntity<Map<String, Object>> handleClerkException(ClerkException ex) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", Instant.now());
         body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
