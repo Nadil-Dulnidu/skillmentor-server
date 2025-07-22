@@ -46,7 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/public/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**","/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/academic/classroom/**").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/clerk/user-created").permitAll()
+                        .requestMatchers("/clerk/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(clerkPublicKey()), UsernamePasswordAuthenticationFilter.class)
