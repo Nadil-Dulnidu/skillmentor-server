@@ -1,13 +1,16 @@
 package com.skillmentor.root.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skillmentor.root.exception.ClerkException;
+import com.svix.Webhook;
+import com.svix.exceptions.WebhookVerificationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/clerk")
@@ -19,13 +22,19 @@ public class ClerkWebhookController {
     @Value("${clerk.webhook.secret}")
     private String clerkWebhookSecret;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @PostMapping("/user-created")
     public ResponseEntity<String> handleUserCreated(
-            @RequestBody String rawBody
+            @RequestBody String rawBody,
+            @RequestHeader java.net.http.HttpHeaders header
     ) {
         try {
+            // 1. Verify webhook
+            Webhook svixWebhook = new Webhook(clerkWebhookSecret);
+            svixWebhook.verify(rawBody, header);
 
-            ObjectMapper objectMapper = new ObjectMapper();
+            // 2. Parse body
             Map<String, Object> body = objectMapper.readValue(rawBody, Map.class);
             Map<String, Object> data = (Map<String, Object>) body.get("data");
 
@@ -35,19 +44,37 @@ public class ClerkWebhookController {
 
             String userId = data.get("id").toString();
 
+            // 3. Fetch current user metadata
             RestTemplate restTemplate = new RestTemplate();
-            HttpHeaders headers2 = new HttpHeaders();
-            headers2.setBearerAuth(clerkApiKey);
-            headers2.setContentType(MediaType.APPLICATION_JSON);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(clerkApiKey);
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            String payload = "{ \"public_metadata\": { \"role\": \"STUDENT\" } }";
-            HttpEntity<String> entity = new HttpEntity<>(payload, headers2);
+            String getUrl = "https://api.clerk.dev/v1/users/" + userId;
+            HttpEntity<String> getEntity = new HttpEntity<>(headers);
+            ResponseEntity<String> getResponse = restTemplate.exchange(getUrl, HttpMethod.GET, getEntity, String.class);
+            Map<String, Object> userMap = objectMapper.readValue(getResponse.getBody(), Map.class);
+            Map<String, Object> publicMetadata = (Map<String, Object>) userMap.get("public_metadata");
+            if (publicMetadata == null) {
+                publicMetadata = new HashMap<>();
+            }
 
-            String url = "https://api.clerk.dev/v1/users/" + userId;
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PATCH, entity, String.class);
+            String currentRole = (String) publicMetadata.get("role");
+            if (currentRole != null && (currentRole.equalsIgnoreCase("ADMIN"))) {
+                return ResponseEntity.ok("Privileged user — role unchanged");
+            }
 
-            return ResponseEntity.ok(response.getBody());
+            publicMetadata.put("role", "STUDENT");
 
+            Map<String, Object> updatePayload = new HashMap<>();
+            updatePayload.put("public_metadata", publicMetadata);
+            HttpEntity<String> patchEntity = new HttpEntity<>(objectMapper.writeValueAsString(updatePayload), headers);
+            ResponseEntity<String> patchResponse = restTemplate.exchange(getUrl, HttpMethod.PATCH, patchEntity, String.class);
+
+            return ResponseEntity.ok(patchResponse.getBody());
+
+        } catch (WebhookVerificationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid webhook signature");
         } catch (Exception e) {
             throw new ClerkException(e.getMessage());
         }
