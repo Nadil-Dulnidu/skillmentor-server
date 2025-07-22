@@ -54,6 +54,7 @@ public class ClerkWebhookController {
             }
 
             String userId = data.get("id").toString();
+            System.out.println("user-id "+ userId);
 
             // 3. Fetch current user metadata
             RestTemplate restTemplate = new RestTemplate();
@@ -66,14 +67,18 @@ public class ClerkWebhookController {
             ResponseEntity<String> getResponse = restTemplate.exchange(getUrl, HttpMethod.GET, getEntity, String.class);
             Map<String, Object> userMap = objectMapper.readValue(getResponse.getBody(), Map.class);
             Map<String, Object> publicMetadata = (Map<String, Object>) userMap.get("public_metadata");
+            System.out.println("pass the get meta data");
             if (publicMetadata == null) {
                 publicMetadata = new HashMap<>();
             }
+
+            System.out.println(publicMetadata);
 
             String currentRole = (String) publicMetadata.get("role");
             if (currentRole != null && (currentRole.equalsIgnoreCase("ADMIN"))) {
                 return ResponseEntity.ok("Privileged user — role unchanged");
             }
+            System.out.println("pass the role changes");
 
             publicMetadata.put("role", "STUDENT");
 
@@ -82,11 +87,15 @@ public class ClerkWebhookController {
             HttpEntity<String> patchEntity = new HttpEntity<>(objectMapper.writeValueAsString(updatePayload), headers);
             ResponseEntity<String> patchResponse = restTemplate.exchange(getUrl, HttpMethod.PATCH, patchEntity, String.class);
 
+            System.out.println("all set send back to success data");
+
             return ResponseEntity.ok(patchResponse.getBody());
 
         } catch (WebhookVerificationException e) {
+            System.out.println("get a webhook error ");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid webhook signature");
         } catch (Exception e) {
+            System.out.println("get 500 error");
             throw new ClerkException(e.getMessage());
         }
     }
