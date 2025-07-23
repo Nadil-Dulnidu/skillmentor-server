@@ -64,5 +64,7 @@ public interface StudentService {
      * @param clerkId the clerk ID of the student to delete
      * @return a StudentDTO object representing the deleted student
      */
-    StudentDTO deleteStudentByClerkId(String clerkId) throws StudentException;
+    StudentDTO deleteStudentByClerkId(String clerkId);
+
+    boolean assignStudentRole(String userId) throws Exception;
 }

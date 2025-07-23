@@ -1,35 +1,36 @@
 package com.skillmentor.root.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skillmentor.root.dto.StudentDTO;
 import com.skillmentor.root.entity.StudentEntity;
 import com.skillmentor.root.exception.StudentException;
 import com.skillmentor.root.mapper.StudentEntityDTOMapper;
 import com.skillmentor.root.repository.StudentRepository;
 import com.skillmentor.root.service.StudentService;
+import com.skillmentor.root.util.InterServiceCommunicationHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
 @Service
 public class StudentServiceImpl implements StudentService {
-    @Value("${spring.datasource.url}")
-    private String datasource;
-
     private final StudentRepository studentRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final InterServiceCommunicationHandler interServiceCommunicationHandler;
 
     @Autowired
-    public StudentServiceImpl(StudentRepository studentRepository) {
+    public StudentServiceImpl(StudentRepository studentRepository,
+                              InterServiceCommunicationHandler interServiceCommunicationHandler) {
         this.studentRepository = studentRepository;
+        this.interServiceCommunicationHandler = interServiceCommunicationHandler;
     }
 
     @Override
@@ -49,7 +50,7 @@ public class StudentServiceImpl implements StudentService {
 
             final StudentEntity studentEntity = StudentEntityDTOMapper.map(studentDTO);
             final StudentEntity savedEntity = studentRepository.save(studentEntity);
-            log.info("Student created with ID: {} at data-source: {}", savedEntity.getStudentId(), this.datasource);
+            log.info("Student created with ID: {}", savedEntity.getStudentId());
             return StudentEntityDTOMapper.map(savedEntity);
         } catch (DataIntegrityViolationException e) {
             log.error("Data integrity violation while creating student: {}", e.getMessage());
@@ -71,7 +72,7 @@ public class StudentServiceImpl implements StudentService {
                 .filter(student -> firstNames == null || firstNames.contains(student.getFirstName()))
                 .map(StudentEntityDTOMapper::map)
                 .toList();
-        log.info("Found {} students after filtering from data-source: {}", result.size(), this.datasource);
+        log.info("Found {} students after filtering ", result.size());
         return result;
     }
 
@@ -85,7 +86,7 @@ public class StudentServiceImpl implements StudentService {
                     return StudentEntityDTOMapper.map(student);
                 })
                 .orElseThrow(() -> {
-                    log.error("Student not found with ID: {} from data-source:{}", id, this.datasource);
+                    log.error("Student not found with ID: {} ", id);
                     return new StudentException("Student not found with ID: " + id);
                 });
     }
@@ -151,5 +152,22 @@ public class StudentServiceImpl implements StudentService {
         studentRepository.delete(studentEntity);
         log.info("Student with clerk ID {} deleted successfully", clerkId);
         return StudentEntityDTOMapper.map(studentEntity);
+    }
+
+    @Override
+    public boolean assignStudentRole(final String userId) throws Exception {
+        final String userResponse = interServiceCommunicationHandler.getUserId(userId);
+        final Map<String, Object> userMap = objectMapper.readValue(userResponse, Map.class);
+        Map<String, Object> publicMetadata = (Map<String, Object>) userMap.get("public_metadata");
+        if (publicMetadata == null) {
+            publicMetadata = new HashMap<>();
+        }
+        final String currentRole = (String) publicMetadata.get("role");
+        if (currentRole != null) return false;
+        publicMetadata.put("role", "STUDENT");
+        final Map<String, Object> updatePayload = new HashMap<>();
+        updatePayload.put("public_metadata", publicMetadata);
+        final String patchResponse = interServiceCommunicationHandler.updateUserMetaData(updatePayload,userId);
+        return true;
     }
 }
