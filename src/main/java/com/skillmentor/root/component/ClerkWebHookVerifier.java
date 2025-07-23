@@ -20,7 +20,6 @@ public class ClerkWebHookVerifier {
             String svixId = headers.get("svix-id");
             String svixTimestamp = headers.get("svix-timestamp");
             String svixSignature = headers.get("svix-signature");
-
             if (svixId == null || svixTimestamp == null || svixSignature == null) {
                 throw new IllegalArgumentException("Missing required Svix headers");
             }
@@ -29,7 +28,6 @@ public class ClerkWebHookVerifier {
             headerMap.put("svix-timestamp", List.of(svixTimestamp));
             headerMap.put("svix-signature", List.of(svixSignature));
             final java.net.http.HttpHeaders header = java.net.http.HttpHeaders.of(headerMap, (k, v) -> true);
-
             final Webhook webhook = new Webhook(clerkWebhookSecret);
             webhook.verify(payload, header);
             return true;
