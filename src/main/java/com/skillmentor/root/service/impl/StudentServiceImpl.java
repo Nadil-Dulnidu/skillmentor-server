@@ -156,18 +156,25 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public boolean assignStudentRole(final String userId) throws Exception {
+        log.info("Assigning student role to user with ID: {}", userId);
         final String userResponse = interServiceCommunicationHandler.getUserId(userId);
+        log.debug("Fetched user info from clerk");
         final Map<String, Object> userMap = objectMapper.readValue(userResponse, Map.class);
         Map<String, Object> publicMetadata = (Map<String, Object>) userMap.get("public_metadata");
         if (publicMetadata == null) {
             publicMetadata = new HashMap<>();
         }
         final String currentRole = (String) publicMetadata.get("role");
-        if (currentRole != null) return false;
+        if (currentRole != null){
+            log.info("Role not assign: User has already a role {}", userId);
+            return false;
+        }
         publicMetadata.put("role", "STUDENT");
         final Map<String, Object> updatePayload = new HashMap<>();
         updatePayload.put("public_metadata", publicMetadata);
+        log.debug("Updating student role");
         final String patchResponse = interServiceCommunicationHandler.updateUserMetaData(updatePayload,userId);
+        log.info("Student role assigned successfully for user with ID: {}", userId);
         return true;
     }
 }

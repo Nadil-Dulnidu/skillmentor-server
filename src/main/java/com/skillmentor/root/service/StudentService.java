@@ -66,5 +66,11 @@ public interface StudentService {
      */
     StudentDTO deleteStudentByClerkId(String clerkId);
 
+    /**
+     * Add "student" user role to the clerk public metadata
+     * @param userId Unique clerk userId
+     * @return if role assign return true or not false
+     * @throws Exception Checked exceptions
+     */
     boolean assignStudentRole(String userId) throws Exception;
 }
