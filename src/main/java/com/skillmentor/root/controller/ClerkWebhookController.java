@@ -26,62 +26,62 @@ public class ClerkWebhookController {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping("/user-created")
-    public ResponseEntity<?> handleUserCreated(
+    public ResponseEntity<?> handleUserRoles(
             @RequestBody String rawBody,
             @RequestHeader("svix-id") String svixId,
             @RequestHeader("svix-signature") String svixSignature,
             @RequestHeader("svix-timestamp") String svixTimestamp
-    ) throws ClerkException {
+    ) throws ClerkException , WebhookVerificationException {
         try {
-            HashMap<String, List<String>> headerMap = new HashMap<>();
+            final HashMap<String, List<String>> headerMap = new HashMap<>();
             headerMap.put("svix-id", List.of(svixId));
             headerMap.put("svix-timestamp", List.of(svixTimestamp));
             headerMap.put("svix-signature", List.of(svixSignature));
-            java.net.http.HttpHeaders header = java.net.http.HttpHeaders.of(headerMap, (k, v) -> true);
+            final java.net.http.HttpHeaders header = java.net.http.HttpHeaders.of(headerMap, (k, v) -> true);
 
-            Webhook webhook = new Webhook(clerkWebhookSecret);
+            final Webhook webhook = new Webhook(clerkWebhookSecret);
 
             webhook.verify(rawBody, header);
 
-            Map<String, Object> body = objectMapper.readValue(rawBody, Map.class);
-            Map<String, Object> data = (Map<String, Object>) body.get("data");
+            final Map<String, Object> body = objectMapper.readValue(rawBody, Map.class);
+            final Map<String, Object> data = (Map<String, Object>) body.get("data");
 
             if (data == null || data.get("id") == null) {
                 return ResponseEntity.badRequest().body("Missing user ID");
             }
 
-            WebClient webClient = WebClient.builder()
+            final WebClient webClient = WebClient.builder()
                     .baseUrl("https://api.clerk.dev/v1/users")
                     .defaultHeader("Authorization", "Bearer " + clerkApiKey)
                     .defaultHeader("Content-Type", "application/json")
                     .build();
 
-            String userId = data.get("id").toString();
+            final String userId = data.get("id").toString();
 
-            String userResponse = webClient.get()
+            final String userResponse = webClient.get()
                     .uri("/{id}",userId)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
 
-            Map<String, Object> userMap = objectMapper.readValue(userResponse, Map.class);
+            final Map<String, Object> userMap = objectMapper.readValue(userResponse, Map.class);
             Map<String, Object> publicMetadata = (Map<String, Object>) userMap.get("public_metadata");
 
             if (publicMetadata == null) {
                 publicMetadata = new HashMap<>();
             }
 
-            String currentRole = (String) publicMetadata.get("role");
+            final String currentRole = (String) publicMetadata.get("role");
             if (currentRole != null) {
                 return ResponseEntity.ok("Privileged user - role unchanged");
             }
 
             publicMetadata.put("role", "STUDENT");
 
-            Map<String, Object> updatePayload = new HashMap<>();
+            final Map<String, Object> updatePayload = new HashMap<>();
             updatePayload.put("public_metadata", publicMetadata);
 
-            String patchResponse = webClient.patch()
+            final String patchResponse = webClient.patch()
                     .uri("/{id}",userId)
                     .bodyValue(objectMapper.writeValueAsString(updatePayload))
                     .retrieve()
@@ -90,7 +90,7 @@ public class ClerkWebhookController {
 
             return new ResponseEntity<>(patchResponse, HttpStatus.OK);
         } catch (WebhookVerificationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid webhook signature");
+            throw new WebhookVerificationException(e.getMessage());
         } catch (Exception e) {
             throw new ClerkException(e.getMessage());
         }
