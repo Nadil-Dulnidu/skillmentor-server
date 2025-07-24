@@ -95,20 +95,20 @@ public class StudentServiceImpl implements StudentService {
     @Transactional(rollbackFor = Exception.class)
     public StudentDTO updateStudentById(final StudentDTO studentDTO) {
         log.info("Updating student...");
-        if (studentDTO == null || studentDTO.getStudentId() == null) {
+        if (studentDTO == null) {
             log.error("Failed to update student: DTO or studentId is null.");
             throw new IllegalArgumentException("Student ID must not be null for update.");
         }
         log.debug("Updating student with ID: {}", studentDTO.getStudentId());
-        final StudentEntity studentEntity = studentRepository.findById(studentDTO.getStudentId())
+        final StudentEntity studentEntity = studentRepository.findByClerkStudentId(studentDTO.getClerkStudentId())
                 .orElseThrow(() -> {
-                    log.error("Cannot update. Student not found with ID: {}", studentDTO.getStudentId());
-                    return new StudentException("Cannot update. Student not found with ID: " + studentDTO.getStudentId());
+                    log.error("Cannot update. Student not found with ID: {}", studentDTO.getClerkStudentId());
+                    return new StudentException("Cannot update. Student not found with ID: " + studentDTO.getClerkStudentId());
                 });
         studentEntity.setFirstName(studentDTO.getFirstName());
         studentEntity.setLastName(studentDTO.getLastName());
         StudentEntity updated = studentRepository.save(studentEntity);
-        log.info("Student updated with ID: {}", updated.getStudentId());
+        log.info("Student updated with ID: {}", updated.getClerkStudentId());
         return StudentEntityDTOMapper.map(updated);
     }
 
