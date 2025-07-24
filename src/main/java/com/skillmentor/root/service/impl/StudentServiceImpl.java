@@ -107,10 +107,6 @@ public class StudentServiceImpl implements StudentService {
                 });
         studentEntity.setFirstName(studentDTO.getFirstName());
         studentEntity.setLastName(studentDTO.getLastName());
-        studentEntity.setEmail(studentDTO.getEmail());
-        studentEntity.setPhoneNumber(studentDTO.getPhoneNumber());
-        studentEntity.setAddress(studentDTO.getAddress());
-        studentEntity.setAge(studentDTO.getAge());
         StudentEntity updated = studentRepository.save(studentEntity);
         log.info("Student updated with ID: {}", updated.getStudentId());
         return StudentEntityDTOMapper.map(updated);
@@ -155,7 +151,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public boolean assignStudentRole(final String userId) throws Exception {
+    public void assignStudentRole(final String userId) throws Exception {
         log.info("Assigning student role to user with ID: {}", userId);
         final String userResponse = interServiceCommunicationHandler.getUserId(userId);
         log.debug("Fetched user info from clerk");
@@ -164,17 +160,11 @@ public class StudentServiceImpl implements StudentService {
         if (publicMetadata == null) {
             publicMetadata = new HashMap<>();
         }
-        final String currentRole = (String) publicMetadata.get("role");
-        if (currentRole != null){
-            log.info("Role not assign: User has already a role {}", userId);
-            return false;
-        }
         publicMetadata.put("role", "STUDENT");
         final Map<String, Object> updatePayload = new HashMap<>();
         updatePayload.put("public_metadata", publicMetadata);
         log.debug("Updating student role");
         final String patchResponse = interServiceCommunicationHandler.updateUserMetaData(updatePayload,userId);
         log.info("Student role assigned successfully for user with ID: {}", userId);
-        return true;
     }
 }
